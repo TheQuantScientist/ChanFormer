@@ -54,6 +54,14 @@ MIN_DELTA     = 2e-9
 TEST_DAYS     = 365
 VAL_FRACTION  = 0.20
 
+# Ablation configurations
+ABLATIONS = [
+    {'name': 'full', 'use_revin': True, 'use_pos_embed': True, 'use_channel_mixer': True},
+    {'name': 'no_revin', 'use_revin': False, 'use_pos_embed': True, 'use_channel_mixer': True},
+    {'name': 'no_pos_embed', 'use_revin': True, 'use_pos_embed': False, 'use_channel_mixer': True},
+    {'name': 'no_channel_mixer', 'use_revin': True, 'use_pos_embed': True, 'use_channel_mixer': False},
+]
+
 # ─── Data Preparation ────────────────────────────────────────────────────────────
 
 def load_and_prepare_multi_asset_data(file_paths):
@@ -348,7 +356,9 @@ if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Device:", device)
 
-    scenarios = ['crypto', 'stock', 'blended']
+    scenarios = ['crypto', 'stock']
+    all_global_results = []
+    all_per_asset_results = []
 
     for scenario in scenarios:
         if scenario == 'crypto':
@@ -362,7 +372,7 @@ if __name__ == "__main__":
         prefix = f"{scenario}_"
 
         print(f"\n{'='*70}")
-        print(f"TRAINING NO-PATCHING MODEL FOR {scenario.upper()}")
+        print(f"ABLATION STUDY FOR NO-PATCHING MODEL ON {scenario.upper()}")
         print('='*70)
 
         print("Loading & preparing data...")
@@ -391,62 +401,55 @@ if __name__ == "__main__":
         scaled_test  = scale_df(test_data).values.astype(np.float32)
         full_scaled  = np.concatenate((scaled_train, scaled_val, scaled_test))
 
-        model = MultiAssetNoPatchTransformer(
-            num_features=n_features,
-            seq_len=SEQ_LEN,
-            d_model=384,
-            nhead=6,
-            num_layers=4,
-            dropout=0.10,
-            use_revin=True,
-            use_pos_embed=True,
-            use_channel_mixer=True,
-        ).to(device)
-
         train_loader, val_loader = create_dataloaders(scaled_train, scaled_val, SEQ_LEN, BATCH_SIZE)
 
-        model = train_model(model, train_loader, val_loader, EPOCHS, device,
-                            save_path=f"{prefix}model_no_patch_best.pth")
+        for ablation in ABLATIONS:
+            ablation_name = ablation['name']
+            print(f"\n--- Ablation: {ablation_name} ---")
 
-        global_res, per_asset_res, preds_test_scaled, trues_test_scaled = evaluate_one_step(
-            model, full_scaled, SEQ_LEN, BATCH_SIZE, device,
-            scalers, columns, test_data, TEST_DAYS, ASSETS
-        )
+            model = MultiAssetNoPatchTransformer(
+                num_features=n_features,
+                seq_len=SEQ_LEN,
+                d_model=384,
+                nhead=6,
+                num_layers=4,
+                dropout=0.10,
+                use_revin=ablation['use_revin'],
+                use_pos_embed=ablation['use_pos_embed'],
+                use_channel_mixer=ablation['use_channel_mixer'],
+            ).to(device)
 
-        print(f"\nFinal results (no patching) for {scenario}:")
-        print(f"Global RMSE (scaled): {global_res['test_rmse_global']:.6f}")
-        print(f"Global MAE  (scaled): {global_res['test_mae_global']:.6f}")
+            save_path = f"{prefix}model_no_patch_{ablation_name}_best.pth"
+            model = train_model(model, train_loader, val_loader, EPOCHS, device, save_path=save_path)
 
-        # ─── Inverse transform predictions for saving ────────────────────────────
-        pred_prices = np.zeros_like(preds_test_scaled)
-        for i, col in enumerate(columns):
-            pred_prices[:, i] = scalers[col].inverse_transform(
-                preds_test_scaled[:, i].reshape(-1, 1)
-            ).ravel()
+            global_res, per_asset_res, _, _ = evaluate_one_step(
+                model, full_scaled, SEQ_LEN, BATCH_SIZE, device,
+                scalers, columns, test_data, TEST_DAYS, ASSETS
+            )
 
-        # Create DataFrame with dates from test_data
-        pred_df = pd.DataFrame(
-            pred_prices,
-            index=test_data.index,
-            columns=columns
-        )
+            print(f"\nResults for {ablation_name} on {scenario}:")
+            print(f"Global RMSE (scaled): {global_res['test_rmse_global']:.6f}")
+            print(f"Global MAE  (scaled): {global_res['test_mae_global']:.6f}")
 
-        # Combine true and predicted values
-        forecast_df = test_data.add_suffix('_true').copy()
-        for col in columns:
-            forecast_df[f'{col}_pred'] = pred_df[col]
+            # Add scenario and ablation to results
+            global_res['scenario'] = scenario
+            global_res['ablation'] = ablation_name
+            all_global_results.append(global_res)
 
-        # Save the forecast file
-        forecast_path = f"{scenario}_forecasts_no_patch_full_ohlcv2.csv"
-        forecast_df.to_csv(forecast_path)
+            for res in per_asset_res:
+                res['scenario'] = scenario
+                res['ablation'] = ablation_name
+            all_per_asset_results.extend(per_asset_res)
 
-        # ─── Save metrics ────────────────────────────────────────────────────────
-        pd.DataFrame([global_res]).to_csv(f"{prefix}no_patch_global_result2.csv", index=False)
-        pd.DataFrame(per_asset_res).to_csv(f"{prefix}no_patch_per_asset_results.csv2", index=False)
+            # Save individual results
+            pd.DataFrame([global_res]).to_csv(f"{prefix}no_patch_{ablation_name}_global_result.csv", index=False)
+            pd.DataFrame(per_asset_res).to_csv(f"{prefix}no_patch_{ablation_name}_per_asset_results.csv", index=False)
 
-        print("\nResults saved to:")
-        print(f"• {prefix}no_patch_global_result.csv")
-        print(f"• {prefix}no_patch_per_asset_results.csv")
-        print(f"• {forecast_path}")
+    # Save aggregated results across all scenarios and ablations
+    pd.DataFrame(all_global_results).to_csv("ablation_chanformer_global.csv", index=False)
+    pd.DataFrame(all_per_asset_results).to_csv("ablation_chanformer_per_asset_results.csv", index=False)
 
-    print("\nAll scenarios completed.")
+    print("\nAll results saved to:")
+    print("• all_no_patch_global_results.csv")
+    print("• all_no_patch_per_asset_results.csv")
+    print("Individual files per scenario and ablation also saved.")
