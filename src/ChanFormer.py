@@ -14,8 +14,8 @@ from torch.optim.lr_scheduler import CosineAnnealingLR, ReduceLROnPlateau
 
 # ─── Configuration ───────────────────────────────────────────────────────────────
 
-DATA_ROOT = "/home/nckh2/qa/ChanFormer/dataset/crypto"
-DATA_ROOT_2 = "/home/nckh2/qa/ChanFormer/dataset/stock"
+DATA_ROOT = "./dataset/crypto"
+DATA_ROOT_2 = "./dataset/stock"
 
 crypto_files = {
     'ATOMUSDT': f'{DATA_ROOT}/ATOMUSDT_1d_full.csv',

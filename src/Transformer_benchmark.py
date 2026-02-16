@@ -1,5 +1,8 @@
 import os
 import sys
+
+sys.path.append('.')
+
 import argparse
 import math
 import gc
@@ -10,9 +13,6 @@ from sklearn.preprocessing import MinMaxScaler
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
-
-# Add Time-Series-Library to path (assuming it's still at this location)
-sys.path.append('/home/nckh2/qa/Time-Series-Library')
 from utils.timefeatures import time_features
 
 # Import benchmark models
@@ -30,8 +30,8 @@ except ImportError:
 
 # ─── Configuration ───────────────────────────────────────────────────────────────
 
-DATA_ROOT_CRYPTO = "/home/nckh2/qa/ChanFormer/dataset/crypto"
-DATA_ROOT_STOCK  = "/home/nckh2/qa/ChanFormer/dataset/stock"
+DATA_ROOT_CRYPTO = "./dataset/crypto"
+DATA_ROOT_STOCK  = "./dataset/stock"
 
 CRYPTO_FILES = {
     'ATOMUSDT': f'{DATA_ROOT_CRYPTO}/ATOMUSDT_1d_full.csv',
