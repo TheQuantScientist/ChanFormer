@@ -117,6 +117,8 @@ Predictions are inverse-transformed before saving. Results are as follows:
 
 ![High-level Design Image](graph/Summary.png)
 
+![High-level Design Image](graph/Summary2.png)
+
 ------------------------------------------------------------------------
 
 ## Output Files
