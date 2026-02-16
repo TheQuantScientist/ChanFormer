@@ -20,23 +20,24 @@ ChanFormer is a channel-wise Transformer architecture for multi-asset financial 
 
 ## Project Structure
 
+```text
 ChanFormer
-    ├── README.md
-    ├── LICENSE.txt
-    ├── dataset/
-    │   └── crypto/
-    │       └── SUIUSDT_1d_full.csv
-    |   └── stock/
-    │       └── AAPL_1d_full.csv
-    └── src/
-        ├── ablation.py
-        ├── backtesting.py
-        ├── ChanFormer.py
-        ├── emissions.csv
-        ├── overhead.py
-        ├── PatchTST.py
-        └── Transformer_benchmark.py
-
+├── README.md
+├── LICENSE.txt
+├── dataset/
+│   ├── crypto/
+│   │   └── SUIUSDT_1d_full.csv
+│   └── stock/
+│       └── AAPL_1d_full.csv
+└── src/
+    ├── ablation.py
+    ├── backtesting.py
+    ├── ChanFormer.py
+    ├── emissions.csv
+    ├── overhead.py
+    ├── PatchTST.py
+    └── Transformer_benchmark.py
+```
 
 All training, evaluation, and forecasting logic is contained in
 `ChanFormer.py`.
