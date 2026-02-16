@@ -20,12 +20,23 @@ ChanFormer is a channel-wise Transformer architecture for multi-asset financial 
 
 ## Project Structure
 
-    ChanFormer/
+ChanFormer
+    ├── README.md
+    ├── LICENSE.txt
     ├── dataset/
-    │   ├── crypto/
-    │   └── stock/
-    ├── ChanFormer.py
-    └── README.md
+    │   └── crypto/
+    │       └── SUIUSDT_1d_full.csv
+    |   └── stock/
+    │       └── AAPL_1d_full.csv
+    └── src/
+        ├── ablation.py
+        ├── backtesting.py
+        ├── ChanFormer.py
+        ├── emissions.csv
+        ├── overhead.py
+        ├── PatchTST.py
+        └── Transformer_benchmark.py
+
 
 All training, evaluation, and forecasting logic is contained in
 `ChanFormer.py`.
@@ -36,11 +47,11 @@ All training, evaluation, and forecasting logic is contained in
 
 Instead of splitting time into patches, ChanFormer:
 
-1.  Takes a 90-day historical window\
-2.  Flattens time per feature channel\
-3.  Projects into embedding space\
-4.  Applies Transformer encoding\
-5.  Mixes channels via MLP\
+1.  Takes a 90-day historical window
+2.  Flattens time per feature channel
+3.  Projects into embedding space
+4.  Applies Transformer encoding
+5.  Mixes channels via MLP
 6.  Predicts next-day OHLCV
 
 Each feature channel becomes **one token**, removing temporal
@@ -50,27 +61,18 @@ cross-attention and isolating the impact of channel interaction.
 
 ## Supported Assets
 
-### Cryptocurrencies (10)
-
-ATOMUSDT, BCHUSDT, DOTUSDT, HBARUSDT,\
-LTCUSDT, MATICUSDT, NEARUSDT, SHIBUSDT,\
-SUIUSDT, XLMUSDT
-
-### Equities (10)
-
-AAPL, AMZN, AVGO, BRK-B, GOOGL,\
-META, MSFT, NVDA, TSLA, TSM
-
-------------------------------------------------------------------------
-
-## Training Scenarios
-
-ChanFormer automatically runs:
-
-1.  Crypto-only
-2.  Stock-only
-
-This enables cross-market and cross-asset transfer evaluation.
+| #  | Cryptocurrency    | Stock |
+| -- | --------- | ----- |
+| 1  | ATOMUSDT  | AAPL  |
+| 2  | BCHUSDT   | AMZN  |
+| 3  | DOTUSDT   | AVGO  |
+| 4  | HBARUSDT  | BRK-B |
+| 5  | LTCUSDT   | GOOGL |
+| 6  | MATICUSDT | META  |
+| 7  | NEARUSDT  | MSFT  |
+| 8  | SHIBUSDT  | NVDA  |
+| 9  | SUIUSDT   | TSLA  |
+| 10 | XLMUSDT   | TSM   |
 
 ------------------------------------------------------------------------
 
