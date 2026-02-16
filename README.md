@@ -3,10 +3,7 @@
 ![High-level Design Image](graph/ChanFormer.png)
 
 
-ChanFormer is a channel-wise Transformer architecture for multi-asset
-financial time-series forecasting.
-
-ChanFormer is designed to study cross-asset interaction and representation learning without temporal patching, serving as a controlled architectural baseline against patch-based models.
+ChanFormer is a channel-wise Transformer architecture for multi-asset financial time-series forecasting. It is meticulously designed to study cross-asset interaction and representation learning without temporal patching, serving as a controlled architectural baseline against patch-based models.
 
 ------------------------------------------------------------------------
 
